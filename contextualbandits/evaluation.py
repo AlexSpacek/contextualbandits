@@ -84,6 +84,8 @@ def evaluateRejectionSampling(policy, X, a, r, online=True, partial_fit=False,
         
         cum_r=0
         cum_n=0
+        cum_r_list = []
+        cum_mean_r_list = []
         ix_chosen=list()
         policy.fit(X[:0], a[:0], r[:0])
         
@@ -111,6 +113,8 @@ def evaluateRejectionSampling(policy, X, a, r, online=True, partial_fit=False,
             if n_take:
                 cum_r += r_batch[in_sample].sum()
                 cum_n += n_take
+                cum_r_list.append(cum_r)
+                cum_mean_r_list.append(cum_r/cum_n)
                 ix_chosen_this_batch = np.where(in_sample)[0]
                 if batch_size != 1:
                     ix_chosen.extend(i*batch_size + ix_chosen_this_batch)
@@ -124,7 +128,7 @@ def evaluateRejectionSampling(policy, X, a, r, online=True, partial_fit=False,
                     policy.partial_fit(X_batch[ix_chosen_this_batch], a_batch[ix_chosen_this_batch], r_batch[ix_chosen_this_batch])
         if cum_n==0:
             raise ValueError("Rejection sampling couldn't obtain any matching samples.")
-        return (cum_r/cum_n, cum_n)
+        return [cum_r/cum_n, cum_n, cum_r_list, cum_mean_r_list]
     
 
 def evaluateDoublyRobust(pred, X, a, r, p, reward_estimator, nchoices=None,
